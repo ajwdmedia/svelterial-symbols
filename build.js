@@ -3,10 +3,20 @@
 import { resolve } from "path";
 import { readdir, readFile, writeFile, rm, mkdir } from "fs/promises";
 
-const rootPathLight = resolve("./node_modules/@material-symbols/svg-200");
-const rootPathRegular = resolve("./node_modules/@material-symbols/svg-400");
-const rootPathBold = resolve("./node_modules/@material-symbols/svg-700");
-const targetPath = resolve("./src/lib");
+const paths = [
+    {
+        source: resolve("./node_modules/@material-symbols/svg-200"),
+        target: resolve("./packages/light/src/lib"),
+    },
+    {
+        source: resolve("./node_modules/@material-symbols/svg-400"),
+        target: resolve("./packages/regular/src/lib"),
+    },
+    {
+        source: resolve("./node_modules/@material-symbols/svg-700"),
+        target: resolve("./packages/bold/src/lib"),
+    }
+]
 
 /**
  * 
@@ -42,32 +52,32 @@ ${svgString}
 };
 
 
-try {
-    await rm(targetPath, { recursive: true });
-} catch (_err) {
-}
+let convertWidth = async (sourcePath, targetPath) => {
+    let foldered = new Map();
 
-try {
-    await mkdir(targetPath, { recursive: true });
-} catch (_err) {
-    console.log("Couldn't re-create lib directory");
-}
+    try {
+        await rm(targetPath, { recursive: true });
+    } catch (_err) {
+    }
+    
+    try {
+        await mkdir(targetPath, { recursive: true });
+    } catch (_err) {
+        console.log("Couldn't re-create lib directory");
+    }
 
-let foldered = new Map();
-
-let convertWidth = async (rootPath, styleName, isDefault) => {
     // Each folder is a style
-    let folders = (await readdir(rootPath, { withFileTypes: true, encoding: "utf8" })).filter(item => item.isDirectory()).map(item => item.name);
+    let folders = (await readdir(sourcePath, { withFileTypes: true, encoding: "utf8" })).filter(item => item.isDirectory()).map(item => item.name);
 
     for (const folder of folders) {
 
-        let files = (await readdir(resolve(rootPath, folder), { encoding: "utf8" })).filter(item => item.endsWith(".svg")).map(item => item.slice(0, -4));
+        let files = (await readdir(resolve(sourcePath, folder), { encoding: "utf8" })).filter(item => item.endsWith(".svg")).map(item => item.slice(0, -4));
 
-        let converted = await Promise.all(files.map(name => convertSVG(rootPath, folder, name)));
+        let converted = await Promise.all(files.map(name => convertSVG(sourcePath, folder, name)));
 
         const folders = {
-            lines: convertNameToPascalCase(folder) + (isDefault ? "" : styleName),
-            fills: convertNameToPascalCase(folder) + "Filled" + (isDefault ? "" : styleName),
+            lines: convertNameToPascalCase(folder),
+            fills: convertNameToPascalCase(folder) + "Filled",
         };
 
         // we're now only doing one of these each
@@ -98,23 +108,17 @@ let convertWidth = async (rootPath, styleName, isDefault) => {
         }));
 
     }
+
+    let finalExport = "";
+
+    for (const [variant, names] of foldered) {
+        let exportFile = names.map(name => `export { default as ${name} } from "./${name}.svelte"`).join("\n");
+        await writeFile(resolve(targetPath, variant, "index.ts"), exportFile, { encoding: 'utf8' });
+
+        finalExport += `export * as ${variant} from "./${variant}/index"\n`;
+    }
+
+    await writeFile(resolve(targetPath, "index.ts"), finalExport, { encoding: 'utf8' });
 }
 
-await Promise.all([
-    convertWidth(rootPathRegular, "Regular", true),
-    convertWidth(rootPathLight, "Light", false),
-    convertWidth(rootPathBold, "Bold", false),
-])
-
-// Create Export Files
-
-let finalExport = "";
-
-for (const [variant, names] of foldered) {
-    let exportFile = names.map(name => `export { default as ${name} } from "./${name}.svelte"`).join("\n");
-    await writeFile(resolve(targetPath, variant, "index.ts"), exportFile, { encoding: 'utf8' });
-
-    finalExport += `export * as ${variant} from "./${variant}/index"\n`;
-}
-
-await writeFile(resolve(targetPath, "index.ts"), finalExport, { encoding: 'utf8' });
+await Promise.all( paths.map(({ source, target }) => convertWidth(source, target)))

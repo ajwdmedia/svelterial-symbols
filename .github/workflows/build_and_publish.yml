@@ -20,13 +20,13 @@ jobs:
               with:
                   node-version: 16
                   registry-url: https://registry.npmjs.org/
-            - run: npm ci
+            - run: npm run install:do --workspaces
               name: Install Deps
             - run: npm run build
               env:
                 NODE_OPTIONS: --max-old-space-size=6144
               name: Build
-            - run: npm publish ./package --access public -q
+            - run: npm run publish:do
               name: Publish
               env:
                   NODE_AUTH_TOKEN: ${{secrets.npm_token}}
