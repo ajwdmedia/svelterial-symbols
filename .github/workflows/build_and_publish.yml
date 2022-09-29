@@ -22,6 +22,8 @@ jobs:
             - run: npm ci
               name: Install Deps
             - run: npm run build
+              env:
+                NODE_OPTIONS: --max-old-space-size=4096
               name: Build
             - run: npm publish ./package --access public -q
               name: Publish
