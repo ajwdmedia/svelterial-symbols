@@ -45,7 +45,6 @@ ${svgString}
 try {
     await rm(targetPath, { recursive: true });
 } catch (_err) {
-    console.log("Nothing Existed!")
 }
 
 try {
@@ -67,26 +66,14 @@ let convertWidth = async (rootPath, styleName, isDefault) => {
         let converted = await Promise.all(files.map(name => convertSVG(rootPath, folder, name)));
 
         const folders = {
-            all: convertNameToPascalCase(folder),
-            spec: convertNameToPascalCase(folder) + styleName,
+            lines: convertNameToPascalCase(folder) + (isDefault ? "" : styleName),
+            fills: convertNameToPascalCase(folder) + "Filled" + (isDefault ? "" : styleName),
         };
 
-        const foldersFilled = {
-            all: convertNameToPascalCase(folder) + "Filled",
-            spec: convertNameToPascalCase(folder) + "Filled" + styleName,
-        };
-
-        // try catch this cause that folder might already be there
+        // we're now only doing one of these each
         try {
-            await mkdir(resolve(targetPath, folders.all));
-            await mkdir(resolve(targetPath, foldersFilled.all));
-        } catch (err) {
-        }
-
-        // this one should not though but just in case
-        try {
-            await mkdir(resolve(targetPath, folders.spec));
-            await mkdir(resolve(targetPath, foldersFilled.spec));
+            await mkdir(resolve(targetPath, folders.lines));
+            await mkdir(resolve(targetPath, folders.fills));
         } catch (err) {
             
         }
@@ -95,23 +82,15 @@ let convertWidth = async (rootPath, styleName, isDefault) => {
 
             return new Promise(async (promiseResolve) => {
 
-                let folderNames = (item.filled) ? foldersFilled : folders;
+                let folderName = (item.filled) ? folders.fills : folders.lines;
 
-                if (!foldered.has(folderNames.all)) {
-                    foldered.set(folderNames.all, []);
+                if (!foldered.has(folderName)) {
+                    foldered.set(folderName, []);
                 }
 
-                if (!foldered.has(folderNames.spec)) {
-                    foldered.set(folderNames.spec, []);
-                }
+                await writeFile(resolve(targetPath, folderName, item.name + ".svelte"), item.component, { encoding: "utf8" });
 
-                let allName = item.name + ((!isDefault) ? styleName : "");
-
-                await writeFile(resolve(targetPath, folderNames.all, allName + ".svelte"), item.component, { encoding: "utf8" });
-                await writeFile(resolve(targetPath, folderNames.spec, item.name + ".svelte"), item.component, { encoding: "utf8" });
-
-                foldered.get(folderNames.all).push(allName);
-                foldered.get(folderNames.spec).push(item.name);
+                foldered.get(folderName).push(item.name);
 
                 promiseResolve(true);
             })

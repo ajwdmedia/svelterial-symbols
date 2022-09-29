@@ -9,11 +9,12 @@ Also see sister project [ajwdmedia/svelterial-icons](https://github.com/ajwdmedi
 Files should be named the same as on the [Material Symbols site](https://fonts.google.com/icons?icon.set=Material+Symbols), however PascalCased  
 Icon names that start with numbers have "Icon" preceeding them (`1k Plus => Icon1kPlus.svelte`)  
 Icons are grouped by style (Outlined, Rounded, Sharp), and Filled Variants (OutlinedFilled, ...)  
-Icons are also available in Light (200), Regular (400), and Bold (700) widths.  
- - They can be referred to globally by appending the the weight to the Icon (eg. `@.../Rounded/PersonLight.svelte`)
- - Or adding the name to the style variant (eg. `@.../RoundedLight/Person.svelte`)
-   
- If you're using a lot of icons from the same group consider:
+Icons are also available in Light (200) and Bold (700) widths. They can be referred to globally by adding the weight to the variant:  
+ - `@.../RoundedLight/Person.svelte` - Rounded, Light (200) Width
+ - `@.../Sharp/Person.svelte` - Sharp, Regular (400) width
+ - `@.../OutlinedFilledBold/Person.svelte` - Outlined, Filled, Bold (700) width
+
+If you're using a lot of icons from the same group consider:
   - setting up a vite alias to them (eg `@ajwdmedia/svelterial-icons/SharpFilledLight/Person.svelte => %icons/Person.svelte`)  
   - importing from the index file (eg `import { Person } from "@ajwdmedia/svelterial-symbols/SharpFilledLight";`)  
   - both! `import { Person } from "%icons";`
