@@ -18,7 +18,7 @@ jobs:
             - uses: actions/setup-node@v3
               name: Pull in Node
               with:
-                  node-version: 16
+                  node-version: 22
                   registry-url: https://registry.npmjs.org/
             - run: npm install
               name: Install Symbol Packages
@@ -28,7 +28,15 @@ jobs:
               env:
                 NODE_OPTIONS: --max-old-space-size=6144
               name: Build
-            - run: npm run publish:do
-              name: Publish
+            - run: npm publish ./dist/light --access public -q
+              name: Publish Light
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+            - run: npm publish ./dist/regular --access public -q
+              name: Publish Regular
+              env:
+                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+            - run: npm publish ./dist/bold --access public -q
+              name: Publish Bold
               env:
                   NODE_AUTH_TOKEN: ${{secrets.npm_token}}

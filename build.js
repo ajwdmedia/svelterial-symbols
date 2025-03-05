@@ -3,20 +3,26 @@
 import { resolve } from "path";
 import { readdir, readFile, writeFile, rm, mkdir } from "fs/promises";
 
+let thisPackageJSON = JSON.parse(await readFile(resolve("./package.json"), { encoding: "utf-8" }));
+let readme = await readFile(resolve("./README.md"), {encoding: "utf-8"});
+
 const paths = [
     {
         source: resolve("./node_modules/@material-symbols/svg-200"),
-        target: resolve("./packages/light/src/lib"),
+        target: resolve("./dist/light"),
+        name: "@ajwdmedia/svelterial-symbols-light",
     },
     {
         source: resolve("./node_modules/@material-symbols/svg-400"),
-        target: resolve("./packages/regular/src/lib"),
+        target: resolve("./dist/regular"),
+        name: "@ajwdmedia/svelterial-symbols",
     },
     {
         source: resolve("./node_modules/@material-symbols/svg-700"),
-        target: resolve("./packages/bold/src/lib"),
+        target: resolve("./dist/bold"),
+        name: "@ajwdmedia/svelterial-symbols-bold",
     }
-]
+];
 
 /**
  * 
@@ -31,6 +37,8 @@ const convertNameToPascalCase = (name) => {
 
 const convertSVG = async (rootPath, base, file) => {
     let svgString = await readFile(resolve(rootPath, base, file + ".svg"), { encoding: "utf8" });
+    const filled = file.endsWith("-fill");
+    const fileName = convertNameToPascalCase((filled) ? file.slice(0, -5) : file);
 
     svgString = svgString.replace(/width="\d+"/g, `width="{width}"`);
     svgString = svgString.replace(/height="\d+"/g, `height="{height}"`);
@@ -46,19 +54,74 @@ const convertSVG = async (rootPath, base, file) => {
 ${svgString}
     `
 
-    let filled = file.endsWith("-fill")
-
-    return { id: file, variant: convertNameToPascalCase(base), name: convertNameToPascalCase((filled) ? file.slice(0, -5) : file), component, filled };
+    let types = `interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
+    new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
+        $$bindings?: Bindings;
+    } & Exports;
+    (internal: unknown, props: Props & {
+        $$events?: Events;
+        $$slots?: Slots;
+    }): Exports & {
+        $set?: any;
+        $on?: any;
+    };
+    z_$$bindings?: Bindings;
+}
+declare const ${fileName}: $$__sveltets_2_IsomorphicComponent<{
+    size?: string;
+    width?: string;
+    height?: string;
+    fill?: string;
+}, {
+    [evt: string]: CustomEvent<any>;
+}, {}, {}, string>;
+type ${fileName} = InstanceType<typeof ${fileName}>;
+export default ${fileName};
+`
+    return { id: file, variant: convertNameToPascalCase(base), name: fileName, component, filled, types };
 };
 
-
-let convertWidth = async (sourcePath, targetPath) => {
-    let foldered = new Map();
-
-    try {
-        await rm(targetPath, { recursive: true });
-    } catch (_err) {
+/**
+ * 
+ * @param {string} packageName 
+ * @param {string} version
+ * @param {Map<string, string[]>} mapping 
+ */
+const constructPackageJson = (packageName, version, mapping) => {
+    let exportsField = {
+        ".": {
+            import: "./index.js",
+            types: "./index.d.ts",
+        }
+    };
+    for (const [ variant ] of mapping) {
+        const path = `./${variant}`;
+        exportsField[path] = {
+            import: path + "/index.js",
+            types: path + "/index.d.ts",
+        }
+        exportsField[path + "/*.svelte"] = {
+            svelte: path + "/*.svelte",
+            import: path + "/*.svelte",
+            types: path + "/*.svelte.d.ts",
+        }
     }
+
+    return JSON.stringify({
+        name: packageName,
+        version: version,
+        main: "./index.js",
+        peerDependencies: {
+            svelte: "^5.0.0"
+        },
+        type: "module",
+        exports: exportsField
+    }, null, 4);
+}
+
+
+let convertWidth = async (sourcePath, targetPath, name) => {
+    let foldered = new Map();
     
     try {
         await mkdir(targetPath, { recursive: true });
@@ -88,37 +151,38 @@ let convertWidth = async (sourcePath, targetPath) => {
             
         }
 
-        await Promise.all(converted.map((item) => {
+        await Promise.all(converted.map(async (item) => {
+            let folderName = (item.filled) ? folders.fills : folders.lines;
 
-            return new Promise(async (promiseResolve) => {
+            if (!foldered.has(folderName)) {
+                foldered.set(folderName, []);
+            }
 
-                let folderName = (item.filled) ? folders.fills : folders.lines;
+            await writeFile(resolve(targetPath, folderName, item.name + ".svelte"), item.component, { encoding: "utf8" });
+            await writeFile(resolve(targetPath, folderName, item.name + ".svelte.d.ts"), item.types, { encoding: 'utf8' });
 
-                if (!foldered.has(folderName)) {
-                    foldered.set(folderName, []);
-                }
-
-                await writeFile(resolve(targetPath, folderName, item.name + ".svelte"), item.component, { encoding: "utf8" });
-
-                foldered.get(folderName).push(item.name);
-
-                promiseResolve(true);
-            })
-
+            foldered.get(folderName).push(item.name);
+            return true;
         }));
-
     }
 
     let finalExport = "";
 
     for (const [variant, names] of foldered) {
         let exportFile = names.map(name => `export { default as ${name} } from "./${name}.svelte"`).join("\n");
-        await writeFile(resolve(targetPath, variant, "index.ts"), exportFile, { encoding: 'utf8' });
+        await writeFile(resolve(targetPath, variant, "index.js"), exportFile, { encoding: 'utf8' });
+        await writeFile(resolve(targetPath, variant, "index.d.ts"), exportFile, { encoding: 'utf8' });
 
-        finalExport += `export * as ${variant} from "./${variant}/index"\n`;
+        finalExport += `export * as ${variant} from "./${variant}/index.js"\n`;
     }
 
-    await writeFile(resolve(targetPath, "index.ts"), finalExport, { encoding: 'utf8' });
+    await writeFile(resolve(targetPath, "index.js"), finalExport, { encoding: 'utf8' });
+    await writeFile(resolve(targetPath, "index.d.ts"), finalExport, { encoding: 'utf8' });
+    await writeFile(resolve(targetPath, "package.json"), constructPackageJson(name, thisPackageJSON.version, foldered), {encoding: "utf-8"});
+    await writeFile(resolve(targetPath, "README.md"), readme, { encoding: "utf-8" });
 }
+
+await rm(resolve("./package"), { recursive: true, force: true })
+await mkdir(resolve("./package"), { recursive: true });
 
 await Promise.all( paths.map(({ source, target }) => convertWidth(source, target)))
