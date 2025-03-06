@@ -185,4 +185,4 @@ let convertWidth = async (sourcePath, targetPath, name) => {
 await rm(resolve("./package"), { recursive: true, force: true })
 await mkdir(resolve("./package"), { recursive: true });
 
-await Promise.all( paths.map(({ source, target }) => convertWidth(source, target)))
+await Promise.all( paths.map(({ source, target, name }) => convertWidth(source, target, name)))
