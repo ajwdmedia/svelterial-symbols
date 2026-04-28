@@ -6,6 +6,5 @@ node_modules
 .env
 .env.*
 !.env.example
-src/lib
 dist
-src/svg
+src/lib/svg

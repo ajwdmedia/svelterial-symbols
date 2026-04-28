@@ -7,17 +7,17 @@ import { parse } from "svg-parser";
 const paths = [
     {
         source: resolve("./node_modules/@material-symbols/svg-200"),
-        target: resolve("./src/svg/light/"),
+        target: resolve("./src/lib/svg/light/"),
         name: "@ajwdmedia/svelterial-symbols-light",
     },
     {
         source: resolve("./node_modules/@material-symbols/svg-400"),
-        target: resolve("./src/svg/regular/"),
+        target: resolve("./src/lib/svg/regular/"),
         name: "@ajwdmedia/svelterial-symbols",
     },
     {
         source: resolve("./node_modules/@material-symbols/svg-700"),
-        target: resolve("./src/svg/bold/"),
+        target: resolve("./src/lib/svg/bold/"),
         name: "@ajwdmedia/svelterial-symbols-bold",
     }
 ];
@@ -33,6 +33,13 @@ const convertNameToPascalCase = (name) => {
     return hold;
 };
 
+/**
+ * 
+ * @param {string} rootPath 
+ * @param {string} base 
+ * @param {string} file 
+ * @returns 
+ */
 const convertSVG = async (rootPath, base, file) => {
     let svgString = await readFile(resolve(rootPath, base, file + ".svg"), { encoding: "utf8" });
     const filled = file.endsWith("-fill");
@@ -59,44 +66,6 @@ const convertSVG = async (rootPath, base, file) => {
 
     return { id: file, variant: convertNameToPascalCase(base), name: fileName, pathData, filled };
 };
-
-/**
- * 
- * @param {string} packageName 
- * @param {string} version
- * @param {Map<string, string[]>} mapping 
- */
-const constructPackageJson = (packageName, version, mapping) => {
-    let exportsField = {
-        ".": {
-            import: "./index.js",
-            types: "./index.d.ts",
-        }
-    };
-    for (const [ variant ] of mapping) {
-        const path = `./${variant}`;
-        exportsField[path] = {
-            import: path + "/index.js",
-            types: path + "/index.d.ts",
-        }
-        exportsField[path + "/*.svelte"] = {
-            svelte: path + "/*.svelte",
-            import: path + "/*.svelte",
-            types: path + "/*.svelte.d.ts",
-        }
-    }
-
-    return JSON.stringify({
-        name: packageName,
-        version: version,
-        main: "./index.js",
-        peerDependencies: {
-            svelte: "^5.0.0"
-        },
-        type: "module",
-        exports: exportsField
-    }, null, 4);
-}
 
 /**
  * 
@@ -136,19 +105,23 @@ let convertWidth = async (sourcePath, targetPath, name) => {
     let built = [...foldered.entries()].map(([ style, list ]) => {
         
         const content = list.map(it => `    ${it.name}: "${it.pathData}",\n`).join("");
-        return [ style, `export const paths = {\n${content}};\n` ];
+        const types = list.map(it => `    ${it.name}: string,\n`).join("");
+        return [
+            [ style, `export const paths = {\n${content}};\n` ],
+            [ style + ".d", `export declare const paths: {\n${types}};\n` ]
+        ];
         
-    });
+    }).flat();
     
 
-    for (let [ file, content ] of built) {
+    for (let [ group, content ] of built) {
         await mkdir(resolve(targetPath), { recursive: true });
-        await writeFile(resolve(targetPath, file + ".ts"), content, { "encoding": "utf-8" });
+        await writeFile(resolve(targetPath, group + ".ts"), content, { "encoding": "utf-8" });
     }
 
 }
 
-await rm(resolve("./src/svg"), { recursive: true, force: true })
-await mkdir(resolve("./src/svg"), { recursive: true });
+await rm(resolve("./src/lib/svg"), { recursive: true, force: true })
+await mkdir(resolve("./src/lib/svg"), { recursive: true });
 
 await Promise.all( paths.map(({ source, target, name }) => convertWidth(source, target, name)))
