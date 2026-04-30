@@ -1,4 +1,4 @@
-import { iconFactory } from "./index.ts";
+import { iconFactory } from "./icon";
 
 import { paths as outlined } from "./svg/bold/Outlined.ts";
 import { paths as outlined_filled } from "./svg/bold/OutlinedFilled.ts";

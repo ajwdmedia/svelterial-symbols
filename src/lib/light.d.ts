@@ -1,11 +1,11 @@
 import type { FactoryResult } from "./icon.js";
 
-import type { paths as outlined } from "./svg/bold/Outlined.js";
-import type { paths as outlined_filled } from "./svg/bold/OutlinedFilled.js";
-import type { paths as rounded } from "./svg/bold/Rounded.js";
-import type { paths as rounded_filled } from "./svg/bold/RoundedFilled.js";
-import type { paths as sharp } from "./svg/bold/Sharp.js";
-import type { paths as sharp_filled } from "./svg/bold/SharpFilled.js";
+import type { paths as outlined } from "./svg/light/Outlined.js";
+import type { paths as outlined_filled } from "./svg/light/OutlinedFilled.js";
+import type { paths as rounded } from "./svg/light/Rounded.js";
+import type { paths as rounded_filled } from "./svg/light/RoundedFilled.js";
+import type { paths as sharp } from "./svg/light/Sharp.js";
+import type { paths as sharp_filled } from "./svg/light/SharpFilled.js";
 
 export declare type Outlined = FactoryResult<typeof outlined>;
 export declare type OutlinedFilled = FactoryResult<typeof outlined_filled>;

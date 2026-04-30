@@ -6,13 +6,21 @@
 		"generate": "node generate.js",
 		"build": "vite build",
 		"version:patch": "node version.js",
-		"pack": "svelte-package --types false"
+		"pack": "node generate.js && svelte-package --types false"
 	},
 	"files": [ "dist" ],
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"svelte": "./dist/index.js"
+		"./bold": {
+			"types": "./dist/bold.d.ts",
+			"svelte": "./dist/bold.js"
+		},
+		"./regular": {
+			"types": "./dist/regular.d.ts",
+			"svelte": "./dist/regular.js"
+		},
+		"./light": {
+			"types": "./dist/light.d.ts",
+			"svelte": "./dist/light.js"
 		}
 	},
 	"peerDependencies": {
