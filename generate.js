@@ -2,25 +2,50 @@
 
 import { resolve } from "node:path";
 import { readdir, readFile, writeFile, rm, mkdir } from "node:fs/promises";
+import { createReadStream, createWriteStream } from "node:fs";
 import { parse } from "svg-parser";
+import packageJson from "./package.json" with { type: "json" };
 
 const paths = [
     {
         source: resolve("./node_modules/@material-symbols/svg-200"),
-        target: resolve("./src/lib/svg/light/"),
+        target: resolve("./src/lib/light/svg"),
         name: "@ajwdmedia/svelterial-symbols-light",
     },
     {
         source: resolve("./node_modules/@material-symbols/svg-400"),
-        target: resolve("./src/lib/svg/regular/"),
+        target: resolve("./src/lib/regular/svg"),
         name: "@ajwdmedia/svelterial-symbols",
     },
     {
         source: resolve("./node_modules/@material-symbols/svg-700"),
-        target: resolve("./src/lib/svg/bold/"),
+        target: resolve("./src/lib/bold/svg"),
         name: "@ajwdmedia/svelterial-symbols-bold",
     }
 ];
+
+/**
+ * @type {Record<string, string>}
+ */
+const copies = {
+    "./src/lib/bold/exports.d.ts":      "./src/lib/regular/exports.d.ts",
+    "./src/lib/bold/exports.ts":        "./src/lib/regular/exports.ts",
+    "./src/lib/bold/icon.d.ts":         "./src/lib/regular/icon.d.ts",
+    "./src/lib/bold/Icon.svelte":       "./src/lib/regular/Icon.svelte",
+    "./src/lib/bold/Icon.svelte.d.ts":  "./src/lib/regular/Icon.svelte.d.ts",
+    "./src/lib/bold/icon.ts":           "./src/lib/regular/icon.ts",
+
+    "./src/lib/light/exports.d.ts":     "./src/lib/regular/exports.d.ts",
+    "./src/lib/light/exports.ts":       "./src/lib/regular/exports.ts",
+    "./src/lib/light/icon.d.ts":        "./src/lib/regular/icon.d.ts",
+    "./src/lib/light/Icon.svelte":      "./src/lib/regular/Icon.svelte",
+    "./src/lib/light/Icon.svelte.d.ts": "./src/lib/regular/Icon.svelte.d.ts",
+    "./src/lib/light/icon.ts":          "./src/lib/regular/icon.ts",
+    
+    "./src/lib/bold/README.md":         "./README.md",
+    "./src/lib/light/README.md":        "./README.md",
+    "./src/lib/regular/README.md":      "./README.md",
+}
 
 /**
  * 
@@ -121,7 +146,47 @@ let convertWidth = async (sourcePath, targetPath, name) => {
 
 }
 
-await rm(resolve("./src/lib/svg"), { recursive: true, force: true })
-await mkdir(resolve("./src/lib/svg"), { recursive: true });
+for (let why of paths) {
+    await rm(resolve(why.target), { recursive: true, force: true })
+    await mkdir(resolve(why.target), { recursive: true });
+}
 
 await Promise.all( paths.map(({ source, target, name }) => convertWidth(source, target, name)))
+
+for (let to in copies) {
+    const from = copies[to];
+
+    const writes = createWriteStream(to, "utf-8");
+    const reads = createReadStream(from, "utf-8");
+    reads.pipe(writes);
+}
+
+// build package.json
+const file = await readFile("./package.template.json", { encoding: "utf-8" });
+
+/**
+ * @type {Record<string, Record<string, string>>}
+ */
+const outputs = {
+    "./src/lib/bold/package.json": {
+        "__NAME__": "@ajwdmedia/svelterial-symbols-bold",
+        "__VERSION__": packageJson.version,
+    },
+    "./src/lib/light/package.json": {
+        "__NAME__": "@ajwdmedia/svelterial-symbols-light",
+        "__VERSION__": packageJson.version,
+    },
+    "./src/lib/regular/package.json": {
+        "__NAME__": "@ajwdmedia/svelterial-symbols",
+        "__VERSION__": packageJson.version,
+    }
+}
+
+for (let packageOut in outputs) {
+    const d = outputs[packageOut];
+    let work = file;
+    for (let replacer in d) {
+        work = work.split(replacer).join(d[replacer]);
+    }
+    await writeFile(packageOut, work, { encoding: "utf-8" });
+}
