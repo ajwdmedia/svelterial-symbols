@@ -8,6 +8,10 @@ on:
     release:
         types: [created]
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
 jobs:
     build:
         name: Build and Publish
@@ -21,20 +25,12 @@ jobs:
                   node-version: 22
                   registry-url: https://registry.npmjs.org/
             - run: npm install
-              name: Install Symbol Packages
-            - run: npm run build
-              env:
-                NODE_OPTIONS: --max-old-space-size=6144
-              name: Build
+              name: npm install
+            - run: npm run pack
+              name: Pack
             - run: npm publish ./dist/light --access public -q
               name: Publish Light
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
             - run: npm publish ./dist/regular --access public -q
               name: Publish Regular
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}
             - run: npm publish ./dist/bold --access public -q
               name: Publish Bold
-              env:
-                  NODE_AUTH_TOKEN: ${{secrets.npm_token}}

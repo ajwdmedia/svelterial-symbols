@@ -6,5 +6,9 @@ node_modules
 .env
 .env.*
 !.env.example
-src/lib
 dist
+src/lib/**/svg/*.ts
+src/lib/bold
+src/lib/light
+src/lib/**/package.json
+src/lib/**/README.md
