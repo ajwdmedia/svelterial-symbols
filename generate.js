@@ -28,15 +28,11 @@ const paths = [
  * @type {Record<string, string>}
  */
 const copies = {
-    "./src/lib/bold/exports.d.ts":      "./src/lib/regular/exports.d.ts",
-    "./src/lib/bold/exports.ts":        "./src/lib/regular/exports.ts",
     "./src/lib/bold/icon.d.ts":         "./src/lib/regular/icon.d.ts",
     "./src/lib/bold/Icon.svelte":       "./src/lib/regular/Icon.svelte",
     "./src/lib/bold/Icon.svelte.d.ts":  "./src/lib/regular/Icon.svelte.d.ts",
     "./src/lib/bold/icon.ts":           "./src/lib/regular/icon.ts",
 
-    "./src/lib/light/exports.d.ts":     "./src/lib/regular/exports.d.ts",
-    "./src/lib/light/exports.ts":       "./src/lib/regular/exports.ts",
     "./src/lib/light/icon.d.ts":        "./src/lib/regular/icon.d.ts",
     "./src/lib/light/Icon.svelte":      "./src/lib/regular/Icon.svelte",
     "./src/lib/light/Icon.svelte.d.ts": "./src/lib/regular/Icon.svelte.d.ts",
@@ -129,11 +125,11 @@ let convertWidth = async (sourcePath, targetPath, name) => {
 
     let built = [...foldered.entries()].map(([ style, list ]) => {
         
-        const content = list.map(it => `    ${it.name}: "${it.pathData}",\n`).join("");
-        const types = list.map(it => `    ${it.name}: string,\n`).join("");
+        const content = list.map(it => `export const ${it.name} = "${it.pathData}";`).join("\n");
+        const types = list.map(it => `export declare const ${it.name}: string;`).join("\n");
         return [
-            [ style, `export const paths = {\n${content}};\n` ],
-            [ style + ".d", `export declare const paths: {\n${types}};\n` ]
+            [ style, content ],
+            [ style + ".d", types ]
         ];
         
     }).flat();

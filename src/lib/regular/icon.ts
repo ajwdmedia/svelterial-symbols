@@ -3,7 +3,7 @@ import IconComp from './Icon.svelte'
 
 type Props = Omit<ComponentProps<typeof IconComp>, "svg">
 
-export const iconFactory = <T extends Record<string, string>>(svgs: T): IconComp & { [X in keyof T]: Component<Props> } => {
+export const useIcons = <T extends Record<string, string>>(svgs: T): IconComp & { [X in keyof T]: Component<Props> } => {
     return new Proxy(IconComp, {
         get(_target, svg: keyof T | (string | symbol)) {
             // Thank you threlte for the following
