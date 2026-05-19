@@ -3,8 +3,32 @@
 	"version": "__VERSION__",
 	"exports": {
 		".": {
-			"types": "./exports.d.ts",
-			"svelte": "./exports.js"
+			"types": "./icon.d.ts",
+			"svelte": "./icon.js"
+		},
+		"./outlined": {
+			"types": "./svg/Outlined.d.ts",
+			"svelte": "./svg/Outlined.js"
+		},
+		"./outlined-filled": {
+			"types": "./svg/OutlinedFilled.d.ts",
+			"svelte": "./svg/OutlinedFilled.js"
+		},
+		"./rounded": {
+			"types": "./svg/Outlined.d.ts",
+			"svelte": "./svg/Outlined.js"
+		},
+		"./rounded-filled": {
+			"types": "./svg/RoundedFilled.d.ts",
+			"svelte": "./svg/RoundedFilled.js"
+		},
+		"./sharp": {
+			"types": "./svg/Sharp.d.ts",
+			"svelte": "./svg/Sharp.js"
+		},
+		"./sharp-filled": {
+			"types": "./svg/SharpFilled.d.ts",
+			"svelte": "./svg/SharpFilled.js"
 		}
 	},
 	"peerDependencies": {

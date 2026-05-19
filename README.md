@@ -20,17 +20,26 @@ Files should be named the same as on the [Material Symbols site](https://fonts.g
 Icon names that start with numbers have "Icon" preceeding them (`1k Plus => Icon1kPlus.svelte`)  
 Icons are also available in Light (200) and Bold (700) widths, and are available on NPM in different packages (see above)
 
-Icons are grouped by style (Outlined, Rounded, Sharp), and Filled Variants (OutlinedFilled, ...)  
+Icons are grouped by style and filled Variants
+To help with tree shaking, you must import each icon string individually and register them yourself.  
 Import the style, then use the new dot notation syntax to access each icon (similar to how threlte works)  
 In theory, any unused icons should be stripped from your final bundle. In theory.  
+Typescript should hopefully be able to handle autocomplete for you.
+
+```ts
+// $lib/icon.ts
+import { Person, SomethingElse } from "@ajwdmedia/svelterial-symbols/outlined";
+import { useIcons } from "@ajwdmedia/svelterial-symbols";
+
+export const Icon = useIcons({ Person, SomethingElse });
+```
 ```svelte
 <script>
-
-    import { Outlined } from "@ajwdmedia/svelterial-symbols"
-
+    // then use them
+    import { Icon } from "$lib/icon"
 </script>
 
-<Outlined.Person fill="black" size="1.25em" />
+<Icon.Person fill="black" size="1.25em" />
 ```
 
 ### License
