@@ -1,6 +1,7 @@
 {
 	"name": "__NAME__",
 	"version": "__VERSION__",
+	"types": "./icon.d.ts",
 	"exports": {
 		".": {
 			"types": "./icon.d.ts",

@@ -12,3 +12,4 @@ src/lib/bold
 src/lib/light
 src/lib/**/package.json
 src/lib/**/README.md
+VERSION

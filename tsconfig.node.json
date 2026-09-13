@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.ts", "./generate.js"]
+  "include": ["vite.config.ts", "./generate.js", "./ci-pre.js", "./ci-post.js" ]
 }

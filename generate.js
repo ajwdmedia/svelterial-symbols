@@ -5,6 +5,7 @@ import { readdir, readFile, writeFile, rm, mkdir } from "node:fs/promises";
 import { createReadStream, createWriteStream } from "node:fs";
 import { parse } from "svg-parser";
 import packageJson from "./package.json" with { type: "json" };
+import esMain from 'es-main';
 
 const paths = [
     {
@@ -94,7 +95,7 @@ const convertSVG = async (rootPath, base, file) => {
  * @param {string} targetPath 
  * @param {string} name 
  */
-let convertWidth = async (sourcePath, targetPath, name) => {
+const convertWidth = async (sourcePath, targetPath, name) => {
     /**
      * @type {Map<string,Awaited<ReturnType<typeof convertSVG>>[]>}
      */
@@ -142,23 +143,8 @@ let convertWidth = async (sourcePath, targetPath, name) => {
 
 }
 
-for (let why of paths) {
-    await rm(resolve(why.target), { recursive: true, force: true })
-    await mkdir(resolve(why.target), { recursive: true });
-}
-
-await Promise.all( paths.map(({ source, target, name }) => convertWidth(source, target, name)))
-
-for (let to in copies) {
-    const from = copies[to];
-
-    const writes = createWriteStream(to, "utf-8");
-    const reads = createReadStream(from, "utf-8");
-    reads.pipe(writes);
-}
-
 // build package.json
-const file = await readFile("./package.template.json", { encoding: "utf-8" });
+const basePackage = await readFile("./package.template.json", { encoding: "utf-8" });
 
 /**
  * @type {Record<string, Record<string, string>>}
@@ -178,11 +164,32 @@ const outputs = {
     }
 }
 
-for (let packageOut in outputs) {
-    const d = outputs[packageOut];
-    let work = file;
-    for (let replacer in d) {
-        work = work.split(replacer).join(d[replacer]);
+const main = async () => {
+    for (let why of paths) {
+        await rm(resolve(why.target), { recursive: true, force: true })
+        await mkdir(resolve(why.target), { recursive: true });
     }
-    await writeFile(packageOut, work, { encoding: "utf-8" });
+
+    await Promise.all( paths.map(({ source, target, name }) => convertWidth(source, target, name)))
+
+    for (let to in copies) {
+        const from = copies[to];
+
+        const writes = createWriteStream(to, "utf-8");
+        const reads = createReadStream(from, "utf-8");
+        reads.pipe(writes);
+    }
+
+    for (let packageOut in outputs) {
+        const d = outputs[packageOut];
+        let work = basePackage;
+        for (let replacer in d) {
+            work = work.split(replacer).join(d[replacer]);
+        }
+        await writeFile(packageOut, work, { encoding: "utf-8" });
+    }
+}
+
+if (esMain(import.meta)) {
+    main();
 }
