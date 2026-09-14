@@ -13,8 +13,10 @@ jobs:
     name: Check for Updates
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         name: Checkout
+      - uses: git-actions/set-user@v1
+        name: Set Git User
       - uses: actions/setup-node@v6
         name: Pull in Node
         with:
