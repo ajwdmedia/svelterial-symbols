@@ -108,12 +108,12 @@ const main = async () => {
     if (publisherLight[0] !== 0) { console.error("FAILED TO UDPATE NPM - LIGHT"); process.exit(code); }
 
     
-    console.log(" ---- NPM PUBLISH - LIGHT ---- ")
+    console.log(" ---- NPM PUBLISH - REGULAR ---- ")
     const publisherRegular = await summon("npm", [ "publish", "./dist/regular", "--access", "public", "-q", "--provenance" ], { stdio: "inherit", detached: true });
     if (publisherRegular[0] !== 0) { console.error("FAILED TO UDPATE NPM - REGULAR"); process.exit(code); }
 
     
-    console.log(" ---- NPM PUBLISH - LIGHT ---- ")
+    console.log(" ---- NPM PUBLISH - BOLD ---- ")
     const publisherBold = await summon("npm", [ "publish", "./dist/bold", "--access", "public", "-q", "--provenance" ], { stdio: "inherit", detached: true });
     if (publisherBold[0] !== 0) { console.error("FAILED TO UDPATE NPM - BOLD"); process.exit(code); }
 
