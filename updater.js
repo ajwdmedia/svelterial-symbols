@@ -97,13 +97,25 @@ const main = async () => {
     console.log(`Next Release: ${future}`);
 
     console.log("Attempting to build and update NPM packages");
-    const [ code, signal ] = await summon("npm", [ "run", "push" ], { stdio: "inherit" });
-    console.log([ code, signal ]);
-    if (code !== 0) {
-        console.error("FAILED TO UDPATE NPM");
-        console.error("EXITING EARLY");
-        process.exit(code);
-    }
+
+    console.log(" ---- NPM RUN PACK ---- ")
+    const packager = await summon("npm", [ "run", "pack" ], { stdio: "inherit" });
+    if (packager[0] !== 0) { console.error("FAILED TO UDPATE NPM"); process.exit(code); }
+
+    
+    console.log(" ---- NPM PUBLISH - LIGHT ---- ")
+    const publisherLight = await summon("npm", [ "publish", "./dist/light", "--access", "public", "-q", "--provenance" ], { stdio: "inherit", detached: true });
+    if (publisherLight[0] !== 0) { console.error("FAILED TO UDPATE NPM - LIGHT"); process.exit(code); }
+
+    
+    console.log(" ---- NPM PUBLISH - LIGHT ---- ")
+    const publisherRegular = await summon("npm", [ "publish", "./dist/regular", "--access", "public", "-q", "--provenance" ], { stdio: "inherit", detached: true });
+    if (publisherRegular[0] !== 0) { console.error("FAILED TO UDPATE NPM - REGULAR"); process.exit(code); }
+
+    
+    console.log(" ---- NPM PUBLISH - LIGHT ---- ")
+    const publisherBold = await summon("npm", [ "publish", "./dist/bold", "--access", "public", "-q", "--provenance" ], { stdio: "inherit", detached: true });
+    if (publisherBold[0] !== 0) { console.error("FAILED TO UDPATE NPM - BOLD"); process.exit(code); }
 
     console.log("Creating commit...");
 

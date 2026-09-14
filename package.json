@@ -6,8 +6,7 @@
 		"build": "vite build",
 		"autoupdate": "node updater.js",
 		"generate": "node generate.js",
-		"pack": "node generate.js && svelte-package --types false",
-		"push": "npm run pack && npm publish ./dist/light --access public -q --provenance && npm publish ./dist/regular --access public -q --provenance && npm publish ./dist/bold --access public -q --provenance"
+		"pack": "node generate.js && svelte-package --types false"
 	},
 	"files": [
 		"dist"
