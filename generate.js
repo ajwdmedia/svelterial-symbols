@@ -164,7 +164,7 @@ const outputs = {
     }
 }
 
-const main = async () => {
+export const main = async () => {
     for (let why of paths) {
         await rm(resolve(why.target), { recursive: true, force: true })
         await mkdir(resolve(why.target), { recursive: true });

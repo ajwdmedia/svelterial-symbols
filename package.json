@@ -5,9 +5,8 @@
 	"scripts": {
 		"generate": "node generate.js",
 		"build": "vite build",
-		"version:patch": "node version.js",
 		"pack": "node generate.js && svelte-package --types false",
-		"ci:start": "node ci-pre.js"
+		"autoupdate": "node updater.js"
 	},
 	"files": [
 		"dist"
