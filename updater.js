@@ -1,11 +1,21 @@
 import { readFile } from "node:fs/promises";
-import { exec } from 'node:child_process';
+import { exec, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import esMain from "es-main";
 import semver from "semver";
 import { setTimeout } from "node:timers/promises";
 
 const execAsync = promisify(exec);
+
+/**
+ * @param {Parameters<typeof spawn>} params
+ * @returns {Promise<[ code: number, signal: null ] | [ code: null, signal: string ]>}
+ */
+const summon = (...params) => new Promise((resolve, rejects) => {
+    const child = spawn(...params);
+    child.on("error", (err) => rejects(err));
+    child.on("close", (code, signal) => { resolve([code, signal]) });
+})
 
 const packages = [ "@material-symbols/svg-200", "@material-symbols/svg-400", "@material-symbols/svg-700" ];
 
@@ -104,7 +114,10 @@ const main = async () => {
     const releaser = await execAsync(`gh release create v${future} -t "v${future}" -n "Updates material symbols packages to version ${next}"`);
     console.log(releaser.stdout);
     console.log(releaser.stderr);
-    console.log(`Release created. Next action should take over and finish the job. Later!`);
+    console.log(`Release created. Next action will not take over the job, start release now`);
+
+    const [ code, signal ] = await summon("npm", [ "run", "push" ], { stdio: "inherit" });
+    console.log([ code, signal ]);
 }
 
 if (esMain(import.meta)) {

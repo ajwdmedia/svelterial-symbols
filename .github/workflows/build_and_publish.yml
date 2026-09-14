@@ -26,11 +26,5 @@ jobs:
                   registry-url: https://registry.npmjs.org/
             - run: npm install
               name: npm install
-            - run: npm run pack
-              name: Pack
-            - run: npm publish ./dist/light --access public -q
-              name: Publish Light
-            - run: npm publish ./dist/regular --access public -q
-              name: Publish Regular
-            - run: npm publish ./dist/bold --access public -q
-              name: Publish Bold
+            - run: npm run push
+              name: Full Send
