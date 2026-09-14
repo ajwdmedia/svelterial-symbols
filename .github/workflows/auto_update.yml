@@ -1,0 +1,29 @@
+name: Auto Update
+
+on:
+  schedule:
+    - cron: '45 3 * * *' # Runs at 03:45 UTC (after marella packages)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Check for Updates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout
+      - uses: actions/setup-node@v6
+        name: Pull in Node
+        with:
+            node-version: 24
+            registry-url: https://registry.npmjs.org/
+      - run: npm install
+        name: npm install
+      - run: npm run autoupdate
+        name: Do Update Check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
