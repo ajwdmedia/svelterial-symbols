@@ -7,7 +7,7 @@
 		"autoupdate": "node updater.js",
 		"generate": "node generate.js",
 		"pack": "node generate.js && svelte-package --types false",
-		"push": "npm run pack && npm publish ./dist/light --access public -q && npm publish ./dist/regular --access public -q && npm publish ./dist/bold --access public -q"
+		"push": "npm run pack && npm publish ./dist/light --access public -q --provenance && npm publish ./dist/regular --access public -q --provenance && npm publish ./dist/bold --access public -q --provenance"
 	},
 	"files": [
 		"dist"

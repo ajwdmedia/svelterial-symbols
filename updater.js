@@ -95,6 +95,16 @@ const main = async () => {
 
     const future = await getPackageVersion();
     console.log(`Next Release: ${future}`);
+
+    console.log("Attempting to build and update NPM packages");
+    const [ code, signal ] = await summon("npm", [ "run", "push" ], { stdio: "inherit" });
+    console.log([ code, signal ]);
+    if (code !== 0) {
+        console.error("FAILED TO UDPATE NPM");
+        console.error("EXITING EARLY");
+        process.exit(code);
+    }
+
     console.log("Creating commit...");
 
     const committer = await execAsync(`git commit -a -m "Update Material Symbols to ${next}"`);
@@ -114,10 +124,7 @@ const main = async () => {
     const releaser = await execAsync(`gh release create v${future} -t "v${future}" -n "Updates material symbols packages to version ${next}"`);
     console.log(releaser.stdout);
     console.log(releaser.stderr);
-    console.log(`Release created. Next action will not take over the job, start release now`);
-
-    const [ code, signal ] = await summon("npm", [ "run", "push" ], { stdio: "inherit" });
-    console.log([ code, signal ]);
+    console.log(`Release created. Already published, release action will do nothing.`);
 }
 
 if (esMain(import.meta)) {
